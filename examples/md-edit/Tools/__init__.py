@@ -17,7 +17,7 @@ class _Tools():
         self.returnData = ReturnData()
         self.out = OutTools(log=_log)
         self.sys = SysTools(log=_log)
-        self.tk = TkTools(log=_log)
+        self.tk = TkTools()
         # self.init_log_file("/tmp/main.log")
 
 

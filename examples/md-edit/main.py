@@ -83,14 +83,17 @@ class ApiHandler:
     # 读取本地文件
     def _api_read_file(self):
         data = web.data()
+        print "data:" +data
         json_data = json.loads(data)
-        path = json_data.get("path")
+        file_path = json_data.get("file_path")
         data =""
         code = 1
         msg = ""
+        print "file_path:"+ str(file_path)
         try:
-            with open(path, 'r') as fp:
+            with open(file_path, 'r') as fp:
                 data = fp.read()
+                code = 0
         except Exception as e:
             tools.log.error(traceback.format_exc())
             msg = str(e)
@@ -98,7 +101,22 @@ class ApiHandler:
 
     # 选择本地文件 获取文件名和路径
     def _api_select_file(self):
-        file_path = tools.tk.openfile()
+        data = web.data()
+        json_data = json.loads(data)
+        file_path = ""
+        if len(json_data)>0:
+            title = json_data.get("title",None)
+            initialdir = json_data.get("initialdir",None)
+            filetypes = json_data.get("filetypes",None)
+            if filetypes:
+                _filetypes = []
+                for i in filetypes:
+                    _filetypes.append(tuple(i))
+                filetypes = _filetypes
+            defaultextension = json_data.get("defaultextension",None)
+            file_path = tools.tk.openfile(title,initialdir,filetypes,defaultextension)
+        else:
+            file_path = tools.tk.openfile()
         data = {}
         code = 1
         msg = ""
@@ -113,13 +131,14 @@ class ApiHandler:
     def _api_save_file(self):
         data = web.data()
         json_data = json.loads(data)
-        path = json_data.get("path")
-        data =""
+        file_path = json_data.get("file_path")
+        textval = json_data.get("textval")
         code = 1
         msg = ""
         try:
-            with open(path, 'r') as fp:
-                data = fp.read()
+            with open(file_path, 'w') as fp:
+                fp.write(str(textval))
+                code = 0
         except Exception as e:
             tools.log.error(traceback.format_exc())
             msg = str(e)
