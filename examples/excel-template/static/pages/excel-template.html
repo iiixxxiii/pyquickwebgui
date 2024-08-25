@@ -1,0 +1,117 @@
+$def with (filename="")
+
+$var jsfiles: /static/libs/json-viewer/js/jquery-1.11.0.min.js //cdn.bootcdn.net/ajax/libs/ace/1.35.3/ace.js //cdn.staticfile.org/highlight.js/11.8.0/highlight.min.js /static/libs/json-viewer/js/jquery.json-viewer.js /static/libs/logic/${filename}.js
+$var cssfiles: //cdn.staticfile.org/highlight.js/11.8.0/styles/github-dark.min.css /static/libs/json-viewer/css/jquery.json-viewer.css
+$var title: Excel 数据模板生成
+
+<style type="text/css">
+    .vditor-card {
+        width: 100%;
+        height: 98vh;
+    }
+
+    .btext button {
+        width: 100% !important;
+        font-size: 10px !important;
+    }
+
+    html , body{
+        height: 100%;
+        position: relative;
+        flex-direction: column;
+        display: flex;
+    }
+
+    .layui-tab{
+        position: relative;
+        top: 0;
+        bottom: 0;
+        flex: 1;
+    }
+
+</style>
+
+
+
+<script id="select_sheet" type="text/html">
+    <div style="padding:16px;">
+        <div class="layui-form">
+            <div class="layui-form-item">
+                {{#  layui.each(d, function(index, item){ }}
+                <input type="checkbox" name="sheet_name{{=index}}" value="{{=item}}" title="{{=item}}" checked lay-filter="demo-radio-filter"  > 
+                <!-- <input type="radio" name="sheet_name" value="{{=item}}" title="{{=item}}"   >-->
+                {{#  }); }}
+            </div>
+            <div class="layui-form-item">
+                <button lay-submit lay-filter="select_sheet" class="layui-btn select_sheet" >选择表加载</button>
+            </div>
+        </div>
+    </div>
+</script>
+
+
+<script id="sheet_data" type="text/html">
+
+    <div class="layui-tab">
+        <ul class="layui-tab-title">
+          {{#  layui.each(d.sheet_names, function(index, item){ }}
+          <li class="{{= index==0?'layui-this':'' }}" >{{= item }}</li>
+          {{#  }); }}
+        </ul>
+        <div class="layui-tab-content">
+          {{#  layui.each(d.sheet_names, function(index, item){ }}
+          <div class="layui-tab-item {{= index==0?'layui-show':'' }}">
+            <table class="layui-hide" id="ID-{{= item }}"></table>
+          </div>
+          {{#  }); }}
+        </div>
+      </div>
+
+</script>
+
+
+
+<ul class="layui-nav layui-bg-cyan">
+    <li class="layui-nav-item">
+        <a href="javascript:;">文件</a>
+        <dl class="layui-nav-child">
+            <dd><a class="load" href="javascript:;">本地导入表格</a></dd>
+            <dd><a class="web_load" href="javascript:;">web导入表格</a></dd>
+        </dl>
+    </li>
+    <li class="layui-nav-item">
+        <a href="javascript:;">数据</a>
+        <dl class="layui-nav-child">
+            <dd><a class="save" href="javascript:;">缓存数据</a></dd>
+            <dd><a class="empty" href="javascript:;">清空数据</a></dd>
+        </dl>
+    </li>
+</ul>
+<blockquote class="layui-elem-quote">
+    <button   class="layui-btn rendering" >渲染</button>
+</blockquote>
+<div class="layui-tab" lay-filter="tab-hash" >
+    <ul class="layui-tab-title">
+        <li class="layui-this" lay-id="11">表格数据</li>
+        <li lay-id="22">模板</li>
+        <li lay-id="33">结果</li>
+    </ul>
+    <div class="layui-tab-content">
+        <div class="layui-tab-item layui-show">
+            <div class="alltable">暂无数据</div>
+        </div>
+        <div class="layui-tab-item">
+            <div class="layui-row">
+                <div class="layui-col-xs8">
+                    <div id="template_editor" style="height:500px; width: 100%"></div>
+                </div>
+                <div class="layui-col-xs4">
+                    <pre id="json-renderer" style="  height: 500px;    overflow: auto;   "></pre>
+                </div>
+            </div>
+        </div>
+        <div class="layui-tab-item">
+            <div id="result_editor" style="height:500px; width: 100%"></div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,25 @@
+$def with (content ="" )
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="utf-8" />
+    <link href="/static/favicon.ico" rel="shortcut icon" />
+    <script src="https://cdn.jsdelivr.net/npm/dayjs/dayjs.min.js"></script>
+    <link href="/static/libs/layui/css/layui.css" rel="stylesheet" />
+    <script src="/static/libs/layui/layui.js"></script>
+    <script src="/static/libs/logic/common.js"></script>
+    $if content != "" :
+        $if 'title' in content:
+            <title>$content.title</title>
+        $if  "cssfiles" in content:
+            $for f in content.cssfiles.split():
+                <link rel="stylesheet" href="$f" type="text/css" media="screen" charset="utf-8" />
+        $if  "jsfiles" in content:
+            $for f in content.jsfiles.split():
+                <script src="$f"></script>
+</head>
+<body>
+$:content
+</body>
+</html>
