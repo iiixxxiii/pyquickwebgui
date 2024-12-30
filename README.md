@@ -1,13 +1,17 @@
-# py-desktop-webui
-python使用webui制作桌面应用 
+# py-quick-webgui
+python使用webui制作桌面应用
+
+python3.6版本以上
+
+参考 [webui-desktop](https://github.com/webui-dev/webui-desktop)
 
 
 ## 示例
 
-- code-edit            代码编辑器示例
-- md-edit              md 编辑器示例
-- minimize             最小运行程序示例
-
+- django-desktop
+- fastapi-desktop         代码编辑器示例
+- flask-desktop           md 编辑器示例
+- webpy-desktop           最小运行程序示例
 
 
 
@@ -15,7 +19,11 @@ python使用webui制作桌面应用
 
 ###  打包命令
 ```shell lines
-pyinstaller -F package.py  -i "res/favicon.ico"  --add-data="res;res"
+
+package.bat
+
+package.sh
+
 ```
 
 ### 打包说明
