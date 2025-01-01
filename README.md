@@ -3,7 +3,7 @@ python使用webui制作桌面应用
 
 python3.6版本以上
 
-参考 [webui-desktop](https://github.com/webui-dev/webui-desktop)
+参考 [flaskwebgui](https://github.com/ClimenteA/flaskwebgui)
 
 
 ## 示例
