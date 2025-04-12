@@ -393,9 +393,11 @@ class QuikeUI:
             "--disable-sync",
             # 启动隐身无痕模式
             # "--incognito",
-            # 不遵守同源策略。关闭web安全检查
-            # "--disable-web-security",
+            # 不遵守同源策略。关闭web安全检查 允许跨域请求
+            "--disable-web-security",
             # 本地开发调试的话，需要忽略证书错误
+            # 设置允许访问本地文件
+            "--allow-file-access-from-files",
             # "--test-type",
             # "--ignore-certificate-errors",
             # 在离线插页式广告上禁用恐龙复活节彩蛋。
