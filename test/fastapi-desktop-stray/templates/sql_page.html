@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/@picocss/pico@latest/css/pico.min.css"
+    />
+    <link rel="stylesheet" href="/public/css/styles.css" />
+    <title>sql 解析</title>
+  </head>
+
+  <body class="container">
+    <h1>sql</h1>
+    <a href="\" class="button">Go to index</a>
+    <h1>选择文件</h1>
+    <button onclick="openFileDialog()">打开文件选择对话框</button>
+    <p id="filePath"></p>
+  </body>
+  <script type="text/javascript">
+    function openFileDialog() {
+      // 定义请求路径
+      var url = "/apis/open_file"; // 替换为你的目标路径
+
+      // 发起 GET 请求
+      fetch(url)
+        .then(function (response) {
+          if (response.ok) {
+            return response.json(); // 解析 JSON 数据
+          } else {
+            throw new Error("请求失败，状态码: " + response.status);
+          }
+        })
+        .then(function (data) {
+          // 处理响应数据
+          console.log("响应数据:", data);
+        })
+        .catch(function (error) {
+          // 捕获错误
+          console.error("请求出错:", error);
+        });
+    }
+    //const str = "Outer (value1 (nested)) and another (value2).";
+
+    // 匹配最外层括号
+    /*const regex = /$([^()]+)$/g;
+
+    let match;
+    while ((match = regex.exec(str)) !== null) {
+        console.log("括号中的内容:", match[1]);
+    }*/
+  </script>
+</html>

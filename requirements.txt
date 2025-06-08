@@ -1,2 +1,14 @@
 psutil~=6.0
 pyrsistent==0.20.0
+
+#web框架
+#pywebview==5.3.2
+# fastapi框架
+#fastapi==0.109.0
+#uvicorn==0.34.0
+#waitress==3.0.2
+#web.py==0.62
+#whitenoise==6.8.2
+
+#系统托盘
+#pystray==0.19.5

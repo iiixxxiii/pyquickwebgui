@@ -20,7 +20,7 @@ with open("requirements.txt", "r", encoding='utf-8') as r:
 
 setup(
     name="pyquickwebgui",
-    version="0.0.2",
+    version="0.0.4",
     description="Create desktop applications with Flask/Django/FastAPI/web.py!",
     url="https://github.com/iiixxxiii/pyquickwebgui",
     author="iiixxxiii",

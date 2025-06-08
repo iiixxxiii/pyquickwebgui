@@ -1,0 +1,140 @@
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from fastapi import FastAPI
+
+
+import os , sys
+current_dir = os.path.dirname(os.path.abspath(__file__))
+src_dir = os.path.join(current_dir, "../../")
+sys.path.append(src_dir)
+from  src.pyquickwebgui.pyquickwebgui import QuikeUI
+from  src.pyquickwebgui.modules.BaseResponse import BaseResponse
+
+app = FastAPI()
+
+# Mounting default static files
+app.mount("/public", StaticFiles(directory="public/"))
+templates = Jinja2Templates(directory="templates")
+
+
+
+import dominate
+from dominate.tags import *
+
+def home_page():
+
+    # 创建一个新的HTML文档
+    doc = dominate.document(title='Button Event Example')
+
+    # 添加一些外部资源，如CSS或JS文件
+    with doc.head:
+        script(type='text/javascript', src='https://code.jquery.com/jquery-3.2.1.min.js')
+
+    # 在body中添加内容
+    with doc:
+        with div(id='content'):
+            # 创建一个按钮，并为它添加一个ID和一个onclick事件处理器
+            button('Click Me!', _class="button_style", onclick="alert('Button was clicked!');")
+
+            # 或者如果你想要更复杂的逻辑，可以定义一个函数并在onclick属性中调用它
+            script("""
+                function handleButtonClick() {
+                    alert('Button was clicked and handled by a function!');
+                }
+            """, type='text/javascript')
+
+            # 然后在按钮上引用这个函数
+            button('Click Me with Function!', _class="button_style", onclick="handleButtonClick();")
+
+    return doc
+
+
+###############pages#################
+# app.add_route("/", webio_routes(home_page)[0])
+@app.get("/", response_class=HTMLResponse)
+async def root(request: Request):
+    # return templates.TemplateResponse("index.html", {"request": request})
+    return  HTMLResponse(content=home_page().render() , status_code=200)
+
+
+@app.get("/home", response_class=HTMLResponse)
+async def home(request: Request):
+    return templates.TemplateResponse("some_page.html", {"request": request})
+
+@app.get("/sql", response_class=HTMLResponse)
+async def home(request: Request):
+    return templates.TemplateResponse("sql_page.html", {"request": request})
+
+
+###############apis#################
+@app.get("/apis/open_file")
+async def open_file():
+    print("open_file")
+    return BaseResponse.success(data=QuikeUI.open_local_file())
+
+@app.get("/apis/close")
+async def close_server():
+    print("closing server")
+    QuikeUI.close_application()
+
+
+def start_fastapi(**kwargs):
+    import uvicorn
+
+    uvicorn.run(**kwargs)
+
+
+if __name__ == "__main__":
+    # Default start fastapi
+
+    # QuikeUI(
+    #     app=app,
+    #     server="fastapi",
+    #     width=800,
+    #     height=600,
+    #     app_mode=False,
+    # ).run()
+
+    # Default start fastapi with custom port
+
+    QuikeUI(
+        server="fastapi",
+        app=app,
+        port=3000,
+        width=800,
+        height=566,
+        # browser_type = "webview",
+        debug=True,
+        stray=True,
+        stray_img="favicon.png",
+    ).run()
+
+    # Default start fastapi with custom kwargs
+
+    # QuikeUI(
+    #     server="fastapi",
+    #     server_kwargs={
+    #         "app": app,
+    #         "port": 3000,
+    #     },
+    #     width=800,
+    #     height=600,
+    # ).run()
+
+    # Custom start fastapi
+
+    # def saybye():
+    #     print("on_exit bye")
+
+    # QuikeUI(
+    #     server=start_fastapi,
+    #     server_kwargs={
+    #         "app": "main:app",
+    #         "port": 3000,
+    #     },
+    #     width=800,
+    #     height=600,
+    #     on_shutdown=saybye,
+    # ).run()

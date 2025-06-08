@@ -1,0 +1,4 @@
+
+fastapi==0.109.0
+pystray==0.19.5
+#uvicorn==0.34.0

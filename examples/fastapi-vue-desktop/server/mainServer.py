@@ -2,6 +2,7 @@ import os
 
 
 from doctest import debug
+from re import I
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
@@ -11,9 +12,13 @@ from fastapi.staticfiles import StaticFiles
 
 app = FastAPI()
 
-# Mounting default static files
-app.mount("/assets", StaticFiles(directory="../ui/assets"), name="assets")
-templates = Jinja2Templates(directory="../ui")
+templates = None
+def init_static():
+    global templates
+    # Mounting default static files
+    app.mount("/assets", StaticFiles(directory="../ui/assets"), name="assets")
+    app.mount("/static", StaticFiles(directory="../ui/static"), name="static")
+    templates = Jinja2Templates(directory="../ui")
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -34,9 +39,10 @@ if __name__ == "__main__":
     DEBUG = True
 
     if (DEBUG):
-        build = os.system(" cd ../guisrc & npm install & npm run build & cp -r dist/* ../mainServer/gui/  ")
+        build = os.system(" cd ../uisrc & npm install & npm run build & cp -r dist/* ../mainServer/gui/  ")
         print(build)
         print("build end")
+    init_static()
     QuikeUI(
         server="fastapi",
         app=app,
