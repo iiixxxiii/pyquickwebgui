@@ -10,6 +10,7 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 src_dir = os.path.join(current_dir, "../../")
 sys.path.append(src_dir)
 from  src.pyquickwebgui.pyquickwebgui import QuikeUI
+from  src.pyquickwebgui.config.QuickConfig import  Browser_type_enum ,Server_enum
 from  src.pyquickwebgui.modules.BaseResponse import BaseResponse
 
 app = FastAPI()
@@ -87,54 +88,16 @@ def start_fastapi(**kwargs):
 
 
 if __name__ == "__main__":
-    # Default start fastapi
-
-    # QuikeUI(
-    #     app=app,
-    #     server="fastapi",
-    #     width=800,
-    #     height=600,
-    #     app_mode=False,
-    # ).run()
-
-    # Default start fastapi with custom port
 
     QuikeUI(
-        server="fastapi",
+        server = Server_enum.FASTAPI ,
         app=app,
-        port=3000,
         width=800,
         height=566,
-        # browser_type = "webview",
-        debug=True,
-        stray=True,
-        stray_img="favicon.png",
+        browser_type = Browser_type_enum.COMMAND,
+        # debug=True,
+        stray = {
+            'img' : "favicon.png"
+        },
     ).run()
 
-    # Default start fastapi with custom kwargs
-
-    # QuikeUI(
-    #     server="fastapi",
-    #     server_kwargs={
-    #         "app": app,
-    #         "port": 3000,
-    #     },
-    #     width=800,
-    #     height=600,
-    # ).run()
-
-    # Custom start fastapi
-
-    # def saybye():
-    #     print("on_exit bye")
-
-    # QuikeUI(
-    #     server=start_fastapi,
-    #     server_kwargs={
-    #         "app": "main:app",
-    #         "port": 3000,
-    #     },
-    #     width=800,
-    #     height=600,
-    #     on_shutdown=saybye,
-    # ).run()
