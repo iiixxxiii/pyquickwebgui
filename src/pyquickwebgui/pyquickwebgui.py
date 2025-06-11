@@ -11,22 +11,12 @@
 
 
 # 标准库
-import inspect
 import os , sys
-
-import traceback
-from xmlrpc.client import Server
-from duckdb import view
-
 import shutil
-
 import subprocess
 import tempfile
-import threading
 import time
 import uuid
-
-
 import multiprocessing
 from multiprocessing import Process
 from threading import Thread
@@ -34,12 +24,7 @@ from threading import Thread
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, Union
 
-
 import importlib.util
-
-from sympy import N
-from traitlets import default
-
 
 from .rootplugins.BasePlugin import BasePlugin
 
@@ -79,6 +64,8 @@ class QuikeUI:
     # 从全屏模式开始。默认为 False
     fullscreen: bool = False
 
+    # 系统启动后执行的函数
+    on_startup: Callable = None
     on_startup: Callable = None
     on_shutdown: Callable = None
     # 扩展信息
@@ -334,10 +321,7 @@ class QuikeUI:
                 print(f"{plugin.__name__} 没有定义 run()，跳过~")
 
 
-    def run(self):
-        if self.on_startup is not None:
-            self.on_startup()
-
+    def run(self , **kwargs):
 
         # 浏览器进程
         self.browser_thread=None
@@ -345,15 +329,16 @@ class QuikeUI:
         # 服务器进程
         self.server_process=None
 
-
         # 系统托盘 进程
         self.stray_process=None
-
 
         self.run_stray()
         self.run_server()
         self.run_browser()
 
+        # 启动事件
+        if self.on_startup is not None:
+            self.on_startup()
 
         return self
 
@@ -422,11 +407,11 @@ class QuikeUI:
 
         # 定义托盘图标
         # self.stray_icon = None
-        if  len(self.stray.get('img',"")) > 0 :
-            self.stray_icon = Image.open(self.stray.get('img'))
+        if  self.stray.get('icon') is None and  len(self.stray.get('img',"")) > 0 :
+            self.stray['icon'] = Image.open(self.stray.get('img'))
         else:
             #默认白色
-            self.stray_icon = Image.new('RGB', (64, 64), 'white')
+            self.stray['icon'] = Image.new('RGB', (64, 64), 'white')
 
         # 定义托盘图标被点击时的响应函数
         def on_activate(icon, item):
@@ -465,6 +450,8 @@ class QuikeUI:
     @staticmethod
     def open_local_file(title="选择文件", file_filter = [("所有文件", "*.*")]  ):
         # 打开文件
+        print("open_local_file")
+        QuikeUI.get_app().log.info("open_local_file")
         QuikeUI.get_app().log.info("open_local_file file_filter:{}".format(file_filter))
         import tkinter as tk
         from tkinter import filedialog
@@ -497,11 +484,6 @@ class QuikeUI:
         except Exception as e:
             QuikeUI.get_app().log.error(f"发生未知错误：{e}")
             return ""
-
-    @staticmethod
-    def open_local_file(title="选择文件", file_filter = [("所有文件", "*.*")]  ):
-        import tkinter as tk
-        from tkinter import filedialog
 
     @staticmethod
     def set_app(app):

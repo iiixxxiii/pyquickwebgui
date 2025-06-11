@@ -63,7 +63,7 @@ class Server_enum(Enum):
 class QuickConfig:
 
     # 版本号
-    version = "0.0.4"
+    version = "0.0.5"
 
     FLASKWEBGUI_USED_PORT = None
     FLASKWEBGUI_BROWSER_PROCESS = None

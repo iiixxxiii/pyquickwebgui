@@ -16,7 +16,7 @@ from  src.pyquickwebgui.modules.BaseResponse import BaseResponse
 app = FastAPI()
 
 # Mounting default static files
-app.mount("/public", StaticFiles(directory="public/"))
+app.mount("/public", StaticFiles(directory="./public"), name="static")
 templates = Jinja2Templates(directory="templates")
 
 
@@ -32,7 +32,7 @@ def home_page():
     # 添加一些外部资源，如CSS或JS文件
     with doc.head:
         script(type='text/javascript', src='https://code.jquery.com/jquery-3.2.1.min.js')
-
+        link( rel="stylesheet" , href ='/public/css/style.css')
     # 在body中添加内容
     with doc:
         with div(id='content'):
@@ -53,12 +53,15 @@ def home_page():
 
 
 ###############pages#################
-# app.add_route("/", webio_routes(home_page)[0])
+
 @app.get("/", response_class=HTMLResponse)
 async def root(request: Request):
-    # return templates.TemplateResponse("index.html", {"request": request})
-    return  HTMLResponse(content=home_page().render() , status_code=200)
+    return templates.TemplateResponse("index.html", {"request": request})
 
+
+@app.get("/home_page", response_class=HTMLResponse)
+async def home(request: Request):
+    return  HTMLResponse(content=home_page().render() , status_code=200)
 
 @app.get("/home", response_class=HTMLResponse)
 async def home(request: Request):
@@ -73,7 +76,9 @@ async def home(request: Request):
 @app.get("/apis/open_file")
 async def open_file():
     print("open_file")
-    return BaseResponse.success(data=QuikeUI.open_local_file())
+    res = QuikeUI.open_local_file()
+    print("open_file end")
+    return BaseResponse.success(data=res)
 
 @app.get("/apis/close")
 async def close_server():
@@ -99,5 +104,6 @@ if __name__ == "__main__":
         stray = {
             'img' : "favicon.png"
         },
+        on_startup = lambda: print("=========>on_startup")
     ).run()
 
