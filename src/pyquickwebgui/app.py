@@ -7,11 +7,8 @@
 @Desc    :   None
 '''
 
-
-
-
 # 标准库
-import os , sys
+import os, sys
 import shutil
 import subprocess
 import tempfile
@@ -20,6 +17,7 @@ import uuid
 import multiprocessing
 from multiprocessing import Process
 from threading import Thread
+
 # 第三方库
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, Union
@@ -27,16 +25,13 @@ from typing import Any, Callable, Dict, List, Union
 import importlib.util
 
 from .rootplugins.BasePlugin import BasePlugin
-
 from .servers.BaseDefaultServer import BaseDefaultServer
 from .browser.BaseBrowser import BaseBrowser
-
 from .config.QuickConfig import (
     Server_enum,
     Browser_type_enum,
     QuickConfig
 )
-
 
 # 静态QuikeUI对象
 static_app = None
@@ -45,30 +40,49 @@ static_app = None
 @dataclass
 class QuikeUI:
     """
-    创建一个quikeui对象<br>
-    大时代
+    创建一个 QuikeUI 对象，用于启动 Web GUI 应用程序。
+
+    Attributes:
+        server (Union[str, Server_enum, Callable[[Any], None]]): 服务器类型或可调用对象，默认使用 FastAPI。
+        server_kwargs (dict): 服务器配置参数。
+        app (Any): Web 应用实例。
+        port (int): 服务器端口。
+        width (int): 窗口宽度，默认为 800px。
+        height (int): 窗口高度，默认为 600px。
+        fullscreen (bool): 是否全屏显示，默认为 False。
+        on_startup (Callable): 启动时执行的函数。
+        on_shutdown (Callable): 关闭时执行的函数。
+        extra_flags (List[str]): 浏览器额外标志。
+        browser_path (str): 浏览器路径。
+        browser_command (List[str]): 浏览器启动命令。
+        socketio (Any): Socket.IO 实例。
+        profile_dir_prefix (str): 浏览器临时目录前缀。
+        app_mode (bool): 是否以应用模式运行。
+        browser_pid (int): 浏览器进程 ID。
+        base_path (str): 基础路径。
+        frameless (bool): 是否无边框窗口，默认为 False。
+        debug (bool): 是否启用调试模式。
+        x (int): 窗口 x 坐标，默认居中。
+        y (int): 窗口 y 坐标，默认居中。
+        only_webserver (bool): 是否仅作为 Web 服务运行。
+        show_browser (bool): 是否显示浏览器界面，默认为 True。
+        browser_type (Union[str, Browser_type_enum]): 浏览器类型，默认为 command。
+        stray (dict): 托盘图标配置信息。
+        log (object): 日志记录器对象。
+        log_level (str): 日志级别，默认为 info。
+        reload (bool): 是否启用热重载。
+        ss (bool): 是否启用热重载。
     """
-    server: Union[str , Server_enum , Callable[[Any], None]] = Server_enum.FASTAPI.value
 
+    server: Union[str, Server_enum, Callable[[Any], None]] = Server_enum.FASTAPI.value
     server_kwargs: dict = None
-
     app: Any = None
-
-    # 服务器端口
     port: int = None
-
-    # 窗户宽度。默认值为 800px。
     width: int = 800
-    # 窗户高度。默认值为 600px。
     height: int = 600
-    # 从全屏模式开始。默认为 False
     fullscreen: bool = False
-
-    # 系统启动后执行的函数
-    on_startup: Callable = None
     on_startup: Callable = None
     on_shutdown: Callable = None
-    # 扩展信息
     extra_flags: List[str] = None
     browser_path: str = None
     browser_command: List[str] = None
@@ -76,76 +90,39 @@ class QuikeUI:
     profile_dir_prefix: str = "flaskwebgui"
     app_mode: bool = True
     browser_pid: int = None
-    base_path :str = None
-    # 创建一个无框窗口。默认值为 False。
+    base_path: str = None
     frameless: bool = False
-    # 开启调试模式
     debug: bool = False
-    # x 窗口 x 坐标。默认值居中。
     x: int = 0
-    # y 窗口 y 坐标。默认值居中
     y: int = 0
-    # 只是web程序
     only_webserver: bool = False
-    # 显示浏览器  默认显示
     show_browser: bool = True
-
     browser_type: Union[str, Browser_type_enum] = Browser_type_enum.COMMAND.value
-    """_summary_
-        启动服务<br>
-        枚举Browser_type_enum 或者字符串<br>
-        默认为 command<br>
-    """
-
-    stray : dict = None
-    """_summary_
-        显示托盘
-    {
-        - 显示托盘图标
-        img : str = "",
-        - 显示托盘名称
-        name : str = "",
-        - 显示托盘标题
-        title :str ="",
-        - 显示托盘菜单
-        menu : list  = (
-              pystray.MenuItem("Show",lambda icon, item: on_menu_click(icon, item)),
-              pystray.Menu.SEPARATOR,
-              pystray.MenuItem("Exit",lambda icon, item: on_menu_click(icon, item)),
-          )
-        - 触发事件
-        activate : func
-    }
-    :rtype: dict
-    """
-    # # 显示托盘图标
-    # stray_img : str = ""
-    # # 显示托盘名称
-    # stray_name :str =""
-    # # 显示托盘标题
-    # stray_title :str =""
-
-    # 日志
-    log : object = None
-
+    stray: dict = None
+    log: object = None
     log_level: str = "info"
-
-    reload : bool = False
-
+    reload: bool = False
+    ss: bool = False
     def __post_init__(self):
-
-
+        """
+        初始化后处理逻辑：
+        - 枚举转字符串；
+        - 加载插件；
+        - 设置端口；
+        - 生成浏览器 URL；
+        - 设置全局当前应用。
+        """
         # 枚举转换字符串值
         if isinstance(self.server, Server_enum):
             self.server = self.server.value
-        if  isinstance(self.browser_type, Browser_type_enum):
+        if isinstance(self.browser_type, Browser_type_enum):
             self.browser_type = self.browser_type.value
-
 
         self.run_rootplugins()
 
         # 初始化键盘中断标志为False
         self.__keyboard_interrupt = False
+
         # 如果未指定端口，则尝试从服务器配置中获取，若获取失败则调用方法获取一个空闲端口
         if self.port is None:
             self.port = (
@@ -166,8 +143,8 @@ class QuikeUI:
             self.server_kwargs = self.server_kwargs or default_server.get_server_kwargs(
                 app=self.app,
                 port=self.port,
-                reload= self.reload,
-                log_level =self.log_level,
+                reload=self.reload,
+                log_level=self.log_level,
                 base_path=self.base_path,
                 flask_socketio=self.socketio
             )
@@ -176,10 +153,12 @@ class QuikeUI:
             if "port" not in self.server_kwargs:
                 self.server_kwargs["port"] = self.port
             print("默认服务器配置: self.port {}".format(self.port))
+
         # 生成临时的profile目录路径
         self.profile_dir = os.path.join(
             tempfile.gettempdir(), self.profile_dir_prefix + uuid.uuid4().hex
         )
+
         # 构造浏览器访问的URL
         self.url = f"http://127.0.0.1:{self.port}"
 
@@ -187,45 +166,48 @@ class QuikeUI:
         self.browser_path = (
             self.browser_path or QuickConfig.browser_path_dispacher.get(QuickConfig.OPERATING_SYSTEM)()
         )
+
         # 如果未指定浏览器命令，则调用方法生成默认的浏览器命令
         self.browser_command = self.browser_command or QuickConfig.get_browser_command(self)
 
         QuikeUI.set_app(self)
 
-    def create_webview_window(self,server_kwargs):
-        # 创建一个webview窗口
+    def create_webview_window(self, server_kwargs):
+        """
+        创建一个 webview 窗口。
 
+        Args:
+            server_kwargs (dict): 服务器启动参数。
+        """
         import webview
         from contextlib import redirect_stdout
         from io import StringIO
 
         stream = StringIO()
         with redirect_stdout(stream):
-            self.browser_thread = webview.create_window('', self.url ,
-                                    width=self.width,
-                                    height=self.height,
-                                    fullscreen=self.fullscreen )
-
+            self.browser_thread = webview.create_window('', self.url,
+                                                        width=self.width,
+                                                        height=self.height,
+                                                        fullscreen=self.fullscreen)
             webview.start(debug=self.debug, gui='cef')
 
-    def start_browser(self, server_process: Union[Thread,  Process]):
+    def start_browser(self, server_process: Union[Thread, Process]):
+        """
+        启动浏览器进程。
+
+        Args:
+            server_process (Union[Thread, Process]): 服务器进程或线程对象。
+        """
         self.log.info("==========>start_browser Quick version:" + QuickConfig.version)
-
-        # print("browser_type:{}".format(self.browser_type))
-
         self.log.info("Command:{}".format(" ".join(self.browser_command)))
 
         if QuickConfig.OPERATING_SYSTEM == "darwin":
             multiprocessing.set_start_method("fork")
 
-
         if self.browser_type == "command":
             QuickConfig.FLASKWEBGUI_BROWSER_PROCESS = subprocess.Popen(self.browser_command)
             self.browser_pid = QuickConfig.FLASKWEBGUI_BROWSER_PROCESS.pid
             QuickConfig.FLASKWEBGUI_BROWSER_PROCESS.wait()
-        # else:
-        #     multiprocessing.Process( target=self.create_webview_window, kwargs=self.server_kwargs).run()
-
 
         if self.browser_path is None:
             while self.__keyboard_interrupt is False:
@@ -237,26 +219,29 @@ class QuikeUI:
             self.browser_pid = None
             shutil.rmtree(self.profile_dir, ignore_errors=True)
 
-            if  self.stray is False:
+            if self.stray is False:
                 print("server_process.kill.")
                 server_process.kill()
-
         else:
             if self.on_shutdown is not None:
                 self.on_shutdown()
             self.browser_pid = None
             shutil.rmtree(self.profile_dir, ignore_errors=True)
 
-            if  self.stray is False:
+            if self.stray is False:
                 print("QuickConfig.kill_port.")
                 QuickConfig.kill_port(self.port)
 
     def load_rootplugins(self):
+        """
+        加载系统根插件。
+
+        Returns:
+            List[Any]: 插件实例列表。
+        """
         current_dir = os.path.dirname(os.path.abspath(__file__))
-        # 加载系统插件
         rootplugins = []
-        ROOTPLUGINS_DIR = os.path.join(current_dir,QuickConfig.ROOTPLUGINS_DIR)
-        # print("============>ROOTPLUGINS_DIR:{}  ".format(ROOTPLUGINS_DIR  ))
+        ROOTPLUGINS_DIR = os.path.join(current_dir, QuickConfig.ROOTPLUGINS_DIR)
         sys.path.append(ROOTPLUGINS_DIR)
         for filename in os.listdir(ROOTPLUGINS_DIR):
             if filename.endswith(".py"):
@@ -266,18 +251,16 @@ class QuikeUI:
                 module = importlib.util.module_from_spec(spec)
                 spec.loader.exec_module(module)
                 for item_name in dir(module):
-                    if  str(item_name).lower().find(QuickConfig.PLUGIN_CLASS_NAME)>-1 and str(item_name).lower().find(QuickConfig.BASE_PLUGIN_CLASS_NAME)==-1:
+                    if str(item_name).lower().find(QuickConfig.PLUGIN_CLASS_NAME) > -1 and \
+                            str(item_name).lower().find(QuickConfig.BASE_PLUGIN_CLASS_NAME) == -1:
                         item = getattr(module, item_name)
-                        # print("=+++++=>item:{}  ".format(item) )
-                        # print("============>not:{}  ".format(item is not BasePlugin  ))
                         rootplugins.append(item())
-
-        # print("===========>rootplugins[]:{}".format(rootplugins))
         return rootplugins
 
-
     def run_rootplugins(self):
-        # 加载插件
+        """
+        运行加载的系统根插件。
+        """
         self.rootplugins = self.load_rootplugins()
         for plugin in self.rootplugins:
             if hasattr(plugin, "run"):
@@ -286,8 +269,12 @@ class QuikeUI:
                 print(f"run_rootplugins :  {plugin.__name__} 没有定义 run()，跳过~")
 
     def load_plugins(self):
+        """
+        加载用户自定义插件。
 
-        # 插件系统
+        Returns:
+            List[Any]: 插件类实例列表。
+        """
         self.plugins_class = []
         for filename in os.listdir(QuickConfig.PLUGINS_DIR):
             if filename.endswith(".py"):
@@ -296,23 +283,23 @@ class QuikeUI:
                 spec = importlib.util.spec_from_file_location(name, path)
                 module = importlib.util.module_from_spec(spec)
                 spec.loader.exec_module(module)
-
                 for item_name in dir(module):
                     item = getattr(module, item_name)
                     if isinstance(item, type) and issubclass(item, BasePlugin) and item is not BasePlugin:
                         self.plugins_class.append(item())
         return self.plugins_class
 
+    def run_plugins(self, class_name=""):
+        """
+        运行插件。
 
-    def run_plugins(self , class_name = ""):
-        # 运行 插件
-        # 加载插件
-
+        Args:
+            class_name (str): 要运行的插件类名。
+        """
         if self.plugins_obj['class_name'] is not None:
             plugin = self.plugins_obj['class_name']
             if hasattr(plugin, "run"):
                 plugin.run()
-
         self.plugins_class = self.load_plugins()
         for plugin in self.plugins:
             if hasattr(plugin, "run"):
@@ -320,8 +307,16 @@ class QuikeUI:
             else:
                 print(f"{plugin.__name__} 没有定义 run()，跳过~")
 
+    def run(self, **kwargs):
+        """
+        启动整个 QuikeUI 应用。
 
-    def run(self , **kwargs):
+        Args:
+            kwargs (dict): 可选参数字典。
+
+        Returns:
+            QuikeUI: 当前 QuikeUI 实例。
+        """
 
         # 浏览器进程
         self.browser_thread=None
@@ -336,148 +331,146 @@ class QuikeUI:
         self.run_server()
         self.run_browser()
 
-        # 启动事件
         if self.on_startup is not None:
             self.on_startup()
 
         return self
 
     def run_stray(self):
-
-        # 启动 系统托盘进程
+        """
+        启动系统托盘进程。
+        """
         if self.stray and self.only_webserver is False:
             self.log.info("=============>启动 系统托盘进程")
-            self.stray_process =  Thread(target=self.start_stray , daemon=True , args=( ) )
+            self.stray_process = Thread(target=self.start_stray, daemon=True, args=())
             try:
-                if self.stray_process :
+                if self.stray_process:
                     self.stray_process.start()
-                    # self.stray_process.join()
-
             except KeyboardInterrupt:
                 self.__keyboard_interrupt = True
                 print("Stopped")
 
     def run_server(self):
+        """
+        启动服务器进程。
+        """
         self.log.info("=============>启动服务器进程")
         try:
             if QuickConfig.OPERATING_SYSTEM == "darwin":
                 multiprocessing.set_start_method("fork")
-                self.server_process = Process(
-                    target=self.server, kwargs=self.server_kwargs or {}
-                )
+                self.server_process = Process(target=self.server, kwargs=self.server_kwargs or {})
             else:
                 self.server_process = Thread(target=self.server, kwargs=self.server_kwargs or {})
 
             self.server_process.start()
-            # self.server_process.join()
         except Exception as e:
-            print("run_server error:",e)
+            print("run_server error:", e)
 
     def run_browser(self):
-        if self.only_webserver  :
+        """
+        启动浏览器进程。
+        """
+        if self.only_webserver:
             return
         self.log.info("=============>启动浏览器进程")
         if self.browser_type == "command":
-            self.browser_thread =  Thread(target=self.start_browser  , args=(self.server_process,))
+            self.browser_thread = Thread(target=self.start_browser, args=(self.server_process,))
             try:
-                if self.show_browser :
+                if self.show_browser:
                     self.browser_thread.start()
-                    # self.browser_thread.join()
             except KeyboardInterrupt:
                 self.__keyboard_interrupt = True
                 print("Stopped")
         elif self.browser_type == "webview":
             try:
-                # print("server_process.start")
-                # self.server_process.start()
-                # print("self.create_webview_window")
-                if self.show_browser :
+                if self.show_browser:
                     self.create_webview_window(self.server_kwargs)
-                # self.server_process.join()
-                # print("server_process.join")
             except KeyboardInterrupt:
                 self.__keyboard_interrupt = True
                 print("Stopped")
 
     def start_stray(self):
-        print("show_stray!")
-        # 创建一个系统托盘图标
+        """
+        创建并运行系统托盘图标。
+        """
         import pystray
         from PIL import Image
 
         # 定义托盘图标
-        # self.stray_icon = None
-        if  self.stray.get('icon') is None and  len(self.stray.get('img',"")) > 0 :
+        if self.stray.get('icon') is None and len(self.stray.get('img', "")) > 0:
             self.stray['icon'] = Image.open(self.stray.get('img'))
         else:
-            #默认白色
+            # 默认白色
             self.stray['icon'] = Image.new('RGB', (64, 64), 'white')
 
         # 定义托盘图标被点击时的响应函数
         def on_activate(icon, item):
             """处理托盘图标点击事件"""
             print("托盘图标被点击")
+
         def on_menu_click(icon, item):
             """处理菜单项点击事件"""
             if str(item) == "Show":
                 print("显示功能被触发")
                 self.run_browser()
-            # elif str(item) == "隐藏":
-            #     print("隐藏功能被触发")
             elif str(item) == "Exit":
                 self.close_application()
 
         # 创建一个系统托盘对象
         default_menu = (
-            pystray.MenuItem("Show",lambda icon, item: on_menu_click(icon, item)),
+            pystray.MenuItem("Show", lambda icon, item: on_menu_click(icon, item)),
             pystray.Menu.SEPARATOR,
-            pystray.MenuItem("Exit",lambda icon, item: on_menu_click(icon, item)),
+            pystray.MenuItem("Exit", lambda icon, item: on_menu_click(icon, item)),
         )
 
-        # 将托盘图标、菜单和点击响应函数传给系统托盘对象并启动
         pystray.Icon(
-            name = self.stray.get('name',"") ,
-            icon =  self.stray.get('icon',""),
-            title =  self.stray.get('title',""),
-            menu =  self.stray.get('menu',default_menu) ,
-            activate = self.stray.get('activate', on_activate )    # 绑定点击事件
+            name=self.stray.get('name', ""),
+            icon=self.stray.get('icon', ""),
+            title=self.stray.get('title', ""),
+            menu=self.stray.get('menu', default_menu),
+            activate=self.stray.get('activate', on_activate)
         ).run()
 
     @staticmethod
     def get_log():
+        """
+        获取日志记录器。
+
+        Returns:
+            object: 日志对象。
+        """
         return QuikeUI.get_app().log
 
     @staticmethod
-    def open_local_file(title="选择文件", file_filter = [("所有文件", "*.*")]  ):
-        # 打开文件
+    def open_local_file(title="选择文件", file_filter=[("所有文件", "*.*")]):
+        """
+        弹出本地文件选择对话框。
+
+        Args:
+            title (str): 文件选择窗口标题。
+            file_filter (List[Tuple[str, str]]): 文件过滤规则列表。
+
+        Returns:
+            str: 用户选择的文件路径；若取消选择则返回空字符串。
+        """
         print("open_local_file")
         QuikeUI.get_app().log.info("open_local_file")
         QuikeUI.get_app().log.info("open_local_file file_filter:{}".format(file_filter))
         import tkinter as tk
         from tkinter import filedialog
-        # 创建一个Tkinter 本地 文件选择窗口
         try:
-            # 创建Tkinter根窗口并隐藏
             root = tk.Tk()
-            # 顶层
             root.attributes('-topmost', 'true')
-            root.withdraw()  # 隐藏主窗口
-
-            # 打开文件选择对话框
+            root.withdraw()
             file_path = filedialog.askopenfilename(
                 parent=root,
                 title=title,
-                filetypes= file_filter # 可根据需求调整文件类型过滤
-                #filetypes=[("文本文件", "*.txt"), ("所有文件", "*.*")]
+                filetypes=file_filter
             )
-
-            # 如果用户取消选择，返回None
             if not file_path:
                 QuikeUI.get_app().log.info("用户取消了文件选择操作")
                 return ""
-
-            return file_path  # 返回用户选择的文件路径
-
+            return file_path
         except ImportError:
             QuikeUI.get_app().log.error("错误：未安装Tkinter模块，请确保系统支持Tkinter")
             return ""
@@ -487,37 +480,39 @@ class QuikeUI:
 
     @staticmethod
     def set_app(app):
-       global static_app
-       static_app = app
+        """
+        设置静态 QuikeUI 实例。
 
-
-
-    @staticmethod
-    def get_log():
-        return QuikeUI.get_app().log
+        Args:
+            app (QuikeUI): QuikeUI 实例。
+        """
+        global static_app
+        static_app = app
 
     @staticmethod
     def get_app():
+        """
+        获取当前 QuikeUI 实例。
+
+        Returns:
+            QuikeUI: QuikeUI 实例。
+        """
         global static_app
         return static_app
 
     @staticmethod
     def close_application():
+        """
+        关闭应用程序：关闭浏览器、清理资源、终止后台进程。
+        """
         QuikeUI.get_app().log.info("=============>close_application")
         QuikeUI.get_app().log.info("=============>window.__class__>"+str(QuikeUI.get_app().browser_thread.__class__))
 
         if QuikeUI.get_app().browser_type == "command":
             if QuickConfig.FLASKWEBGUI_BROWSER_PROCESS is not None:
-                # 关闭浏览器进程
                 QuickConfig.FLASKWEBGUI_BROWSER_PROCESS.terminate()
         elif QuikeUI.get_app().browser_type == "webview":
             if QuikeUI.get_app().browser_thread is not None:
-                # 关闭浏览器进程
                 QuikeUI.get_app().browser_thread.destroy()
 
-        # if QuikeUI.get_app().stray_icon is not None:
-        #     # 停止托盘图标运行
-        #     QuikeUI.get_app().stray_icon.stop()
-
-        # 关闭后台进程
         QuickConfig.kill_port(QuickConfig.FLASKWEBGUI_USED_PORT)

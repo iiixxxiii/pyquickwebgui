@@ -9,7 +9,7 @@ import os , sys
 current_dir = os.path.dirname(os.path.abspath(__file__))
 src_dir = os.path.join(current_dir, "../../")
 sys.path.append(src_dir)
-from  src.pyquickwebgui.pyquickwebgui import QuikeUI
+from  pyquickwebgui.app import QuikeUI
 from  src.pyquickwebgui.config.QuickConfig import  Browser_type_enum ,Server_enum
 from  src.pyquickwebgui.modules.BaseResponse import BaseResponse
 

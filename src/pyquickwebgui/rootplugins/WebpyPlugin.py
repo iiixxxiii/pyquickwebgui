@@ -1,5 +1,5 @@
 import logging
-from BasePlugin import BasePlugin
+from .BasePlugin import BasePlugin
 
 
 

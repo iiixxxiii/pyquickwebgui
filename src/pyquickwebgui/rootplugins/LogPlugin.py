@@ -1,6 +1,6 @@
 import logging
 import os
-from BasePlugin import BasePlugin
+from .BasePlugin import BasePlugin
 
 # 定义颜色代码
 COLORS = {
